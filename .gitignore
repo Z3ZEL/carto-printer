@@ -1,7 +1,9 @@
 .venv/
-main.py
+internal-test/
 #Python ignore
 __pycache__/
 *.py[cod]
 *$py.class
 */__pycache__/
+dist/
+lib/
