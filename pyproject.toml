@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0","geopandas","matplotlib","contextily","PIL"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "PrintMyReport"
+version = "0.0.1"
+authors = [
+  { name="Esteban Rodriguez (Z3ZEL)", email="contact@rodriguez-esteban.com" },
+]
+description = "A python tool to generate beautiful report pdf from html skeleton and a figure"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Z3ZEL/print-my-report"
+"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
