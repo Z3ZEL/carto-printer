@@ -97,6 +97,9 @@ class Printer():
         html = HTML(string=self.__build_html__(), base_url=dist_dir)
         css = CSS(string=self.__build_css__(), base_url=dist_dir)
 
+        #check if output_dir exists if not create it
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
         html.write_pdf(output_dir + "/" + output_name, stylesheets=[css], encoding="utf-8")
         self.progress.next(50)
 
@@ -107,7 +110,7 @@ class Printer():
 
 
         if delete_dist:
-            self.__remove_dist__(dist_dir)
+            self.__remove_dist__(schema, dist_dir)
 
         self.progress.finish()
         
