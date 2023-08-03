@@ -23,7 +23,11 @@ class Printer():
     def __pre_process__(self,schema="schema_1", dist_dir="./dist"):
         pass
     def __build_html__(self, schema="schema_1", dist_dir="./dist"):
-        path_to_html = Path(__file__).parent / "schemas" / f"{schema}.html"
+        if not './' in schema:
+            path_to_html = Path(__file__).parent / "schemas" / f"{schema}.html"
+        else:
+            path_to_html = Path(schema+".html")
+        
         with open(path_to_html, "r", encoding='utf-8') as f:
             html = f.read()
 
@@ -52,7 +56,10 @@ class Printer():
         self.progress.next(25)
         return soup.prettify()
     def __build_css__(self, schema="schema_1", dist_dir="./dist"):
-        path_to_css = Path(__file__).parent / "schemas" / f"{schema}.css"
+        if not './' in schema:
+            path_to_css = Path(__file__).parent / "schemas" / f"{schema}.css"
+        else:
+            path_to_css = Path(schema+".css")
         with open(path_to_css, "r") as f:
             css = f.read()
         self.progress.next(25)
@@ -94,8 +101,8 @@ class Printer():
         ###
         #Etape 3 : Build pdf
 
-        html = HTML(string=self.__build_html__(), base_url=dist_dir)
-        css = CSS(string=self.__build_css__(), base_url=dist_dir)
+        html = HTML(string=self.__build_html__(schema=schema,dist_dir=dist_dir), base_url=dist_dir)
+        css = CSS(string=self.__build_css__(schema=schema,dist_dir=dist_dir), base_url=dist_dir)
 
         #check if output_dir exists if not create it
         Path(output_dir).mkdir(parents=True, exist_ok=True)
