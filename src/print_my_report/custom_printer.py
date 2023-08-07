@@ -5,10 +5,11 @@ import contextily as ctx
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
+import matplotlib
 import geopandas
 import io
 class CartoPrinter(Printer):
-    def __init__(self,geojsons:list[dict[str,str]], title: DisplayObj, infos: list[DisplayObj], logo:Image=None, map:str = None, aspect_ratio:float = 1.3, legends: list[dict[str,str]] = []):
+    def __init__(self,geojsons:list[dict[str,str]], title: DisplayObj, infos: list[DisplayObj], logo:Image=None, map:str = None, aspect_ratio:float = 1.3, legends: list[dict[str,str]] = [], **kwargs):
         '''
         Create a new printer for a cartography
 
@@ -38,10 +39,12 @@ class CartoPrinter(Printer):
             list of legend to display on the map
             each key will be passed to the patch constructor
 
-
+        kwargs: dict
+            custom_crs : str
+                the crs to use for the map
         '''
         super().__init__(None, title, infos, logo)
-        
+        matplotlib.use('Agg')
         self.map = ctx.providers.GeoportailFrance.plan(apikey='decouverte') if map is None else map
         
 
@@ -55,13 +58,21 @@ class CartoPrinter(Printer):
         self.aspect_ratio = aspect_ratio
         self.legends = legends
 
+        if 'custom_crs' in kwargs:
+            self.custom_crs = kwargs['custom_crs']
+        else:
+            self.custom_crs = "EPSG:2154"
+
 
 
     def __pre_process__(self, schema="schema_1", dist_dir="./dist"):
             # Load data
         df : list[geopandas.GeoDataFrame] = []
-        for geojson in self.geojsons:
+        gs : list[geopandas.GeoSeries] = []
+        for geojson,i in zip(self.geojsons,range(len(self.geojsons))):
             df.append(geopandas.read_file(geojson['geojson']))
+            gs.append(geopandas.GeoSeries(df[i].geometry).to_crs(self.custom_crs))
+            
             #remove the path from the dict
             del geojson['geojson']
         
@@ -69,8 +80,7 @@ class CartoPrinter(Printer):
         geoseries = geopandas.GeoSeries(df[0].geometry)
 
         # Set crs
-        geoseries.crs = "EPSG:4326"
-
+        geoseries = gs[0]
         # Get bound of the data
         bounds = geoseries.total_bounds
 
@@ -85,7 +95,7 @@ class CartoPrinter(Printer):
 
         # Plot data
         for i in range(len(df)):
-            df[i].plot(ax=ax, color=df[i]['color'], **self.geojsons[i])
+            gs[i].plot(ax=ax, color=df[i]['color'], **self.geojsons[i])
         self.progress.next(25)
 
 
@@ -112,7 +122,6 @@ class CartoPrinter(Printer):
         ax.legend(handles=legend_elements, fontsize=15)
 
         ax.axis('off')
-
         ctx.add_basemap(ax, crs=geoseries.crs.to_string(), source=self.map)
         self.progress.next(25)
 
