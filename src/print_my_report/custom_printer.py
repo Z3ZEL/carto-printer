@@ -99,11 +99,48 @@ class CartoPrinter(Printer):
         self.progress.next(25)
 
 
-        # Center the map on the data with a margin 1/8 of the distance between bounds
+        # Center the map on the data with a margin 1/8 of the distance between bounds but the bound must be in the map
         # For the x and y limits they must be set as preserving a ration of 1.3
-        max_length = max(bounds[2]-bounds[0], bounds[3]-bounds[1])
-        ax.set_xlim(bounds[0] - max_length/8, bounds[0] + max_length + max_length/8)
-        ax.set_ylim(bounds[1] - max_length/8, bounds[1] + max_length*(1/self.aspect_ratio) + max_length/8)
+        # The aspect ratio is the ratio between the width and the height of the map
+
+        # Get the distance between the bounds
+        x_dist = bounds[2] - bounds[0]
+        y_dist = bounds[3] - bounds[1]
+
+        if x_dist > y_dist:
+            #Case where the width is bigger than the height
+            #The height is the limiting factor
+
+            #Get the new height
+            new_height = x_dist / self.aspect_ratio
+
+            #Get the new y limits
+            y_min = bounds[1] - (new_height - y_dist) / 2
+            y_max = bounds[3] + (new_height - y_dist) / 2
+
+            #Set the new limits
+            ax.set_ylim(y_min, y_max)
+            ax.set_xlim(bounds[0] - x_dist / 8, bounds[2] + x_dist / 8)
+
+        else:
+            #Case where the height is bigger than the width
+            #The width is the limiting factor
+
+            #Get the new width
+            new_width = y_dist * self.aspect_ratio
+
+            #Get the new x limits
+            x_min = bounds[0] - (new_width - x_dist) / 2
+            x_max = bounds[2] + (new_width - x_dist) / 2
+
+            #Set the new limits
+            ax.set_xlim(x_min, x_max)
+            ax.set_ylim(bounds[1] - y_dist / 8, bounds[3] + y_dist / 8)
+
+
+
+
+ 
         
 
 
