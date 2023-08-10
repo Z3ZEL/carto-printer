@@ -69,10 +69,15 @@ class CartoPrinter(Printer):
             # Load data
         df : list[geopandas.GeoDataFrame] = []
         gs : list[geopandas.GeoSeries] = []
+        ignore = []
         for geojson,i in zip(self.geojsons,range(len(self.geojsons))):
             df.append(geopandas.read_file(geojson['geojson']))
             gs.append(geopandas.GeoSeries(df[i].geometry).to_crs(self.custom_crs))
-            
+            if 'ignore' in geojson and geojson['ignore']:
+                ignore.append(i)
+                del geojson['ignore']
+            else:
+                ignore.append(False)
             #remove the path from the dict
             del geojson['geojson']
         
@@ -83,6 +88,19 @@ class CartoPrinter(Printer):
         geoseries = gs[0]
         # Get bound of the data
         bounds = geoseries.total_bounds
+
+        bounds_width = lambda bounds: bounds[2] - bounds[0]
+        bounds_height = lambda bounds: bounds[3] - bounds[1]
+
+        for tmp, i in zip(gs,range(len(gs))):
+            if ignore[i]:
+                continue
+            if bounds_width(bounds) < bounds_width(tmp.total_bounds):
+                bounds[0] = tmp.total_bounds[0]
+                bounds[2] = tmp.total_bounds[2]
+            if bounds_height(bounds) < bounds_height(tmp.total_bounds):
+                bounds[1] = tmp.total_bounds[1]
+                bounds[3] = tmp.total_bounds[3]
 
         # Set plt rcParams for figure size and dpi at high resolution
         plt.rcParams['figure.autolayout'] = True
@@ -107,35 +125,32 @@ class CartoPrinter(Printer):
         x_dist = bounds[2] - bounds[0]
         y_dist = bounds[3] - bounds[1]
 
-        if x_dist > y_dist:
-            #Case where the width is bigger than the height
-            #The height is the limiting factor
-
-            #Get the new height
-            new_height = x_dist / self.aspect_ratio
-
-            #Get the new y limits
-            y_min = bounds[1] - (new_height - y_dist) / 2
-            y_max = bounds[3] + (new_height - y_dist) / 2
-
-            #Set the new limits
-            ax.set_ylim(y_min, y_max)
-            ax.set_xlim(bounds[0] - x_dist / 8, bounds[2] + x_dist / 8)
-
+        # Check the current ratio to know which dimension to increase to fit the aspect ratio
+        current_ratio = x_dist/y_dist
+        if current_ratio < self.aspect_ratio:
+            # Increase the width
+            x_dist = y_dist * self.aspect_ratio
         else:
-            #Case where the height is bigger than the width
-            #The width is the limiting factor
+            # Increase the height
+            y_dist = x_dist / self.aspect_ratio
+            
+        # Set the new bounds
+        bounds[0] = bounds[0] + (bounds[2] - bounds[0] - x_dist)/2
+        bounds[1] = bounds[1] + (bounds[3] - bounds[1] - y_dist)/2
+        bounds[2] = bounds[0] + x_dist
+        bounds[3] = bounds[1] + y_dist
 
-            #Get the new width
-            new_width = y_dist * self.aspect_ratio
+        # Add a margin of 1/8 of the distance between bounds
+        bounds[0] = bounds[0] - x_dist/8
+        bounds[1] = bounds[1] - y_dist/8
+        bounds[2] = bounds[2] + x_dist/8
+        bounds[3] = bounds[3] + y_dist/8
+        
 
-            #Get the new x limits
-            x_min = bounds[0] - (new_width - x_dist) / 2
-            x_max = bounds[2] + (new_width - x_dist) / 2
+        # Set the limits
+        ax.set_xlim(bounds[0], bounds[2])
+        ax.set_ylim(bounds[1], bounds[3])
 
-            #Set the new limits
-            ax.set_xlim(x_min, x_max)
-            ax.set_ylim(bounds[1] - y_dist / 8, bounds[3] + y_dist / 8)
 
 
 
