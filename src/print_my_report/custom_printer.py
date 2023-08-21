@@ -8,6 +8,7 @@ from matplotlib.lines import Line2D
 import matplotlib
 import geopandas
 import io
+import matplotlib_scalebar.scalebar as ScaleBar
 class CartoPrinter(Printer):
     def __init__(self,geojsons:list[dict[str,str]], title: DisplayObj, infos: list[DisplayObj], logo:Image=None, map:str = None, aspect_ratio:float = 1.3, legends: list[dict[str,str]] = [], **kwargs):
         '''
@@ -116,6 +117,19 @@ class CartoPrinter(Printer):
             gs[i].plot(ax=ax, color=df[i]['color'], **self.geojsons[i])
         self.progress.next(25)
 
+        
+        legend_elements = []
+
+        for legend in self.legends: 
+            l_type  = legend['type']
+            del legend['type']
+            if l_type == 'Line2D':
+                legend_elements.append(Line2D([0], [0], **legend))
+            elif l_type == 'Patch':
+                legend_elements.append(Patch(**legend))
+
+
+        ax.legend(handles=legend_elements, fontsize=15)
 
         # Center the map on the data with a margin 1/8 of the distance between bounds but the bound must be in the map
         # For the x and y limits they must be set as preserving a ration of 1.3
@@ -160,21 +174,13 @@ class CartoPrinter(Printer):
 
 
 
-        legend_elements = []
-
-        for legend in self.legends: 
-            l_type  = legend['type']
-            del legend['type']
-            if l_type == 'Line2D':
-                legend_elements.append(Line2D([0], [0], **legend))
-            elif l_type == 'Patch':
-                legend_elements.append(Patch(**legend))
-
-
-        ax.legend(handles=legend_elements, fontsize=15)
+        
 
         ax.axis('off')
         ctx.add_basemap(ax, crs=geoseries.crs.to_string(), source=self.map)
+        
+        # Add scale bar
+        ax.add_artist(ScaleBar.ScaleBar(1, location='lower right'))
         self.progress.next(25)
 
 

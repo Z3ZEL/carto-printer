@@ -17,7 +17,8 @@ setup(
         'progress',
         'geopandas',
         'contextily',
-        'matplotlib'
+        'matplotlib',
+        "matplotlib-scalebar",
     ],
 )
 
