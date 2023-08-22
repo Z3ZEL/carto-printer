@@ -37,21 +37,24 @@ class Printer():
         info_box = soup.find(attrs={"class":"info-box"})
         carto_title = soup.find(attrs={"class":"carto-title"})
 
-        for item in self.infos:
-            info_box.append(BeautifulSoup(make_info_box_item(item), 'html.parser'))
+        if info_box is not None:
+            for item in self.infos:
+                info_box.append(BeautifulSoup(make_info_box_item(item), 'html.parser'))
         
-        carto_title.append(BeautifulSoup(make_title_content(self.title), 'html.parser'))
+        if carto_title is not None:
+            carto_title.append(BeautifulSoup(make_title_content(self.title), 'html.parser'))
 
         asbolute_path = path.abspath("./") + "/" + dist_dir + "/assets/"
 
 
+        logo = soup.find(attrs={"class":"carto-logo"})
         if self.logo is not None:
-            logo = soup.find(attrs={"class":"carto-logo"})
             logo.append(BeautifulSoup(make_logo(), 'html.parser'))
-        
+    
 
         content = soup.find(attrs={"class":"carto-content"})
-        content.append(BeautifulSoup(make_content(), 'html.parser'))
+        if content is not None:
+            content.append(BeautifulSoup(make_content(), 'html.parser'))
 
         self.progress.next(25)
         return soup.prettify()
