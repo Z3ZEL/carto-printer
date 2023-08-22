@@ -1,3 +1,4 @@
+from pathlib import Path
 from .printer import Printer
 from .obj import DisplayObj
 from PIL import Image
@@ -189,3 +190,17 @@ class CartoPrinter(Printer):
         self.progress.next(25)
 
         self.content = Image.open(img_buf)
+
+
+class NoContentPrinter(Printer):
+    def __init__(self, title, infos, logo):
+        super().__init__(None, title, infos, logo)
+    def __build_dist__(self,dist_dir="./dist"):
+        '''Build dist folder with assets'''
+        #build logo & content
+        Path(dist_dir + "/assets").mkdir(parents=True, exist_ok=True)
+        if self.logo is not None:
+            #Save img
+            self.logo.save(Path(dist_dir + "/assets") / "logo.png")
+        self.progress.next(50)
+        self.progress.next(50)
