@@ -44,6 +44,10 @@ class CartoPrinter(Printer):
         kwargs: dict
             custom_crs : str
                 the crs to use for the map
+            dpi : int
+                the dpi of the map
+            base_map_params : dict
+                the params to pass to the ctx.add_basemap function
         '''
         super().__init__(None, title, infos, logo)
         matplotlib.use('Agg')
@@ -65,6 +69,15 @@ class CartoPrinter(Printer):
         else:
             self.custom_crs = "EPSG:2154"
 
+        if 'dpi' in kwargs:
+            self.dpi = kwargs['dpi']
+        else:
+            self.dpi = 500
+
+        if 'base_map_params' in kwargs:
+            self.base_map_params = kwargs['base_map_params']
+        else:
+            self.base_map_params = {}
 
 
     def __pre_process__(self, schema="schema_1", dist_dir="./dist"):
@@ -106,11 +119,11 @@ class CartoPrinter(Printer):
 
         # Set plt rcParams for figure size and dpi at high resolution
         plt.rcParams['figure.autolayout'] = True
-        plt.rcParams['savefig.dpi'] = 500
+        plt.rcParams['savefig.dpi'] = self.dpi
         plt.rcParams['font.size'] = 5
   
         # Create figure and axes
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10), dpi=500)
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10), dpi=self.dpi)
         self.progress.next(25)
 
         # Plot data
@@ -166,20 +179,10 @@ class CartoPrinter(Printer):
         ax.set_xlim(bounds[0], bounds[2])
         ax.set_ylim(bounds[1], bounds[3])
 
-
-
-
-
- 
-        
-
-
-
         
 
         ax.axis('off')
-        ctx.add_basemap(ax, crs=geoseries.crs.to_string(), source=self.map)
-        
+        ctx.add_basemap(ax, crs=geoseries.crs.to_string(), source=self.map, **self.base_map_params)
         # Add scale bar
         ax.add_artist(ScaleBar.ScaleBar(1, location='lower right'))
         self.progress.next(25)
