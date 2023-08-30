@@ -15,6 +15,15 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    'weasyprint',
+    'bs4',
+    'progress',
+    'geopandas',
+    'contextily',
+    'matplotlib',
+    "matplotlib-scalebar"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/Z3ZEL/print-my-report"
